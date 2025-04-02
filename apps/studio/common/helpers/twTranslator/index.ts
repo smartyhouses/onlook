@@ -3305,14 +3305,21 @@ const getResultCode = (it: CssCodeParse, prefix = '', config: TranslatorConfig) 
                 pipeVal = `[${key.trim()}:${val}]`;
             } else {
                 config.customTheme = config.customTheme ?? {};
-                pipeVal =
-                    typeof pipe === 'function'
-                        ? config.customTheme[key.trim()]?.[val] ||
-                          (config.useAllDefaultValues && moreDefaultValuesMap[key.trim()]?.[val]) ||
-                          pipe(val)
-                        : config.customTheme[key.trim()]?.[val] ||
-                          (config.useAllDefaultValues && moreDefaultValuesMap[key.trim()]?.[val]) ||
-                          (pipe?.[val] ?? '');
+                // Handle all font-family values without square brackets
+                if (key.trim() === 'font-family') {
+                    pipeVal = `font-${val}`;
+                } else {
+                    pipeVal =
+                        typeof pipe === 'function'
+                            ? config.customTheme[key.trim()]?.[val] ||
+                              (config.useAllDefaultValues &&
+                                  moreDefaultValuesMap[key.trim()]?.[val]) ||
+                              pipe(val)
+                            : config.customTheme[key.trim()]?.[val] ||
+                              (config.useAllDefaultValues &&
+                                  moreDefaultValuesMap[key.trim()]?.[val]) ||
+                              (pipe?.[val] ?? '');
+                }
             }
             if ((config.prefix?.length ?? 0) > 0) {
                 pipeVal = pipeVal
@@ -3416,6 +3423,7 @@ const getResultCode = (it: CssCodeParse, prefix = '', config: TranslatorConfig) 
                         .join(' ');
                 }
             }
+            console.log('pipeVal', pipeVal);
             return pipeVal;
         })
         .filter((v) => v !== '');
