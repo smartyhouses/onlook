@@ -3423,6 +3423,7 @@ const getResultCode = (it: CssCodeParse, prefix = '', config: TranslatorConfig) 
                         .join(' ');
                 }
             }
+            console.log('pipeVal', pipeVal);
             return pipeVal;
         })
         .filter((v) => v !== '');
