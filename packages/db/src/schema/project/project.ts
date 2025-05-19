@@ -1,5 +1,6 @@
-import { relations } from 'drizzle-orm';
-import { pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
+import { pgPolicy, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { authenticatedRole } from "drizzle-orm/supabase";
 import { createInsertSchema } from 'drizzle-zod';
 import { userProjects } from '../user';
 import { canvases } from './canvas';
@@ -14,7 +15,18 @@ export const projects = pgTable("projects", {
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     previewImg: varchar("preview_img"),
     description: text("description"),
-}).enableRLS();
+}, (table) => [
+    pgPolicy('policy', {
+        as: 'restrictive',
+        to: authenticatedRole,
+        using: sql`EXISTS (
+            SELECT 1 FROM user_projects
+            WHERE user_projects.project_id = ${table.id}
+              AND user_projects.user_id = auth.uid()
+        )`,
+    }),
+]
+).enableRLS();
 
 export const projectInsertSchema = createInsertSchema(projects);
 
